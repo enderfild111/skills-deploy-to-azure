@@ -1,0 +1,50 @@
+name: CI and Staging
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+    types: [ labeled ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build on Push/PR
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'stage')
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run a one-line script
+        run: echo "Building on push or non-staged PR"
+      
+      - name: Run multi-line script
+        run: |
+          echo "Add build steps here"
+          echo "For example: npm install && npm test"
+
+  stage:
+    name: Stage App on PR Labeled
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'stage')
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Build app
+        run: npm run build
+      
+      - name: Deploy to staging
+        run: |
+          echo "Deploying to staging environment..."
+          # 实际部署命令（例如使用 AWS/GCP/Azure 等）
